@@ -1,3 +1,16 @@
+# Ian Huff
+# v0.2
+
+# todo:
+# deal with return_value_xx lines
+# operators other than = (==, +, -, *, etc) (also operator.cast.to.bool)
+# var1 = lib::L2CValue::as_integer(var2); and other as_x functions 
+# remove "app::lua_bind::" ?
+# __ -> ::     ?
+# _SITUATION... -> *SITUATION... (also _FIGHTER..., _GROUND..., etc)
+# remove "_impl" from all lines
+
+
 import os
 import re
 
@@ -29,16 +42,30 @@ def translate():
                     line = "// " + line
                 
                 
-                #remove "(L2CValue *)&" from all lines
+                # remove "(L2CValue *)&" from all lines
                 substring = "(L2CValue *)&"
                 if substring in line:
                     line = line.replace(substring, "")
                 
                 
-                #remove "(L2CValue *)" from all lines
+                # remove "(L2CValue *)" from all lines
                 substring = "(L2CValue *)"
                 if substring in line:
                     line = line.replace(substring, "")
+                
+                
+                # replace this->moduleAccessor
+                # with fighter.module_accessor
+                substring = "this->moduleAccessor"
+                if substring in line:
+                    line = line.replace(substring, "fighter.module_accessor")
+                
+                
+                # replace this->globalTable
+                # with fighter.global_table
+                substring = "this->globalTable"
+                if substring in line:
+                    line = line.replace(substring, "fighter.global_table")
                 
                 
                 # reformat lib::L2CValue::L2CValue(var1,var2);
@@ -48,7 +75,7 @@ def translate():
                 if match:
                     print(match)
                     whitespace, token1, token2 = match.groups()
-                    line = f"{whitespace}{token1} = {token2}\n"
+                    line = f"{whitespace}{token1} = {token2};\n"
                 
                 
                 # reformat lib::L2CValue::operator=(var1,var2);
@@ -58,7 +85,7 @@ def translate():
                 if match:
                     print(match)
                     whitespace, token1, token2 = match.groups()
-                    line = f"{whitespace}{token1} = {token2}\n"
+                    line = f"{whitespace}{token1} = {token2};\n"
                 
                 
                 # reformat if ((var1 & 1) != 0)
@@ -79,6 +106,16 @@ def translate():
                     print(match)
                     whitespace, token1, other = match.groups()
                     line = f"{whitespace}if !{token1}{other}\n"
+                
+                
+                # reformat if ((var1 & 1U) != 0)
+                # to if var1
+                pattern2 = r"(\s*)if \(\((.+?) & 1U\) != 0\)(.*)"
+                match = re.search(pattern2, line)
+                if match:
+                    print(match)
+                    whitespace, token1, other = match.groups()
+                    line = f"{whitespace}if {token1}{other}\n"
                 
                 
                 # reformat if ((var1 & 1U) == 0)
