@@ -2,7 +2,7 @@ This script should hopefully make the process of translating SSBU status scripts
 
 The script will also keep code on the same line it started on; i.e. if a particular bit of code is on line 57 in the original, it will still be on line 57 when the script is done. That way, any lines of code that need additional work can be easily investigated by comparing against the original code.
 
-I'm not a Python expert by any means so this code is probably insanely inefficient, but it works for now at the very least.
+I'm not a Python expert by any means so this code is probably pretty inefficient, but it works for now at the very least.
 
 How to use:
 
@@ -10,6 +10,6 @@ Place auto-translate.py in the same directory as the files containing the script
 
 ==== CAUTION ====
 
-The script will indiscriminately and irrevocably modify any files it finds in the directory it is run in. I might add some kind of safety/guardrails later but for now there is nothing.
+The script will (should) indiscriminately and irrevocably modify any files it finds in the directory it is run in. I might add some kind of safety/guardrails later but for now there is nothing. I also make no guarantees that there isn't something like horribly wrong with the implementation of searching for files.
 
-I have literally only tested it in a directory which contains the auto-translate.py and a copy of a fresh status script and nothing else. You have been warned.
+I have literally only tested it on one computer, in a directory which contains auto-translate.py, a copy of a fresh status script, and nothing else. You have been warned.
