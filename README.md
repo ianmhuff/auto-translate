@@ -2,6 +2,8 @@ This script should hopefully make the process of translating SSBU status scripts
 
 The script will also keep code on the same line it started on; i.e. if a particular bit of code is on line 57 in the original, it will still be on line 57 when the script is done. That way, any lines of code that need additional work can be easily investigated by comparing against the original code.
 
+I also left in the tilde lines as comments reformatted as ```free(var)``` since I sometimes find them helpful for following the logic of the script.
+
 I'm not a Python expert by any means so this code is probably pretty inefficient, but it works for now at the very least.
 
 How to use:
