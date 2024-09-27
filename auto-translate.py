@@ -1,14 +1,14 @@
-# Ian Huff
-# v0.2
+# auto-translate.py
+# v0.3
 
-# todo:
+# ideas/todo:
 # deal with return_value_xx lines
-# operators other than = (==, +, -, *, etc) (also operator.cast.to.bool)
-# var1 = lib::L2CValue::as_integer(var2); and other as_x functions 
-# remove "app::lua_bind::" ?
-# __ -> ::     ?
+# operators other than = (==, +, -, *, <, >, <=, >=, etc.) (also operator.cast.to.bool ?)
+# other as_[type]() functions (currently handling as_integer() and as_hash())
 # _SITUATION... -> *SITUATION... (also _FIGHTER..., _GROUND..., etc)
-# remove "_impl" from all lines
+#   this seems difficult to do comprehensively without a complete list of cases where this happens
+# returns? i.e. return_value = 0; -> return 0.into();
+#   this one would need to be at the bottom since it depends on the formatting
 
 
 import os
@@ -35,12 +35,7 @@ def translate():
             # Create a new list to hold modified lines
             modified_lines = []
             
-            for line in lines:
-                
-                # comment out lines containing a ~
-                if '~' in line and "//" not in line: 
-                    line = "// " + line
-                
+            for line in lines:                
                 
                 # remove "(L2CValue *)&" from all lines
                 substring = "(L2CValue *)&"
@@ -52,6 +47,35 @@ def translate():
                 substring = "(L2CValue *)"
                 if substring in line:
                     line = line.replace(substring, "")
+                
+                
+                # remove "app::lua_bind::" from all lines
+                substring = "app::lua_bind::"
+                if substring in line:
+                    line = line.replace(substring, "")
+                
+                
+                # remove "_impl" from all lines
+                substring = "_impl"
+                if substring in line:
+                    line = line.replace(substring, "")
+                
+                
+                # replace __
+                # with ::
+                substring = "__"
+                if substring in line:
+                    line = line.replace(substring, "::")
+                
+                
+                # reformat lib::L2CValue::~L2CValue(var1);
+                # to //free(var1);
+                pattern = r"(\s*)lib::L2CValue::~L2CValue\((.+?)\);\n"
+                match = re.fullmatch(pattern, line)
+                if match:
+                    print(match)
+                    whitespace, token1 = match.groups()
+                    line = f"{whitespace}//free({token1});\n"
                 
                 
                 # replace this->moduleAccessor
@@ -90,8 +114,8 @@ def translate():
                 
                 # reformat if ((var1 & 1) != 0)
                 # to if var1
-                pattern2 = r"(\s*)if \(\((.+?) & 1\) != 0\)(.*)"
-                match = re.search(pattern2, line)
+                pattern = r"(\s*)if \(\((.+?) & 1\) != 0\)(.*)"
+                match = re.search(pattern, line)
                 if match:
                     print(match)
                     whitespace, token1, other = match.groups()
@@ -100,8 +124,8 @@ def translate():
                 
                 # reformat if ((var1 & 1) == 0)
                 # to if !var1
-                pattern2 = r"(\s*)if \(\((.+?) & 1\) == 0\)(.*)"
-                match = re.search(pattern2, line)
+                pattern = r"(\s*)if \(\((.+?) & 1\) == 0\)(.*)"
+                match = re.search(pattern, line)
                 if match:
                     print(match)
                     whitespace, token1, other = match.groups()
@@ -110,8 +134,8 @@ def translate():
                 
                 # reformat if ((var1 & 1U) != 0)
                 # to if var1
-                pattern2 = r"(\s*)if \(\((.+?) & 1U\) != 0\)(.*)"
-                match = re.search(pattern2, line)
+                pattern = r"(\s*)if \(\((.+?) & 1U\) != 0\)(.*)"
+                match = re.search(pattern, line)
                 if match:
                     print(match)
                     whitespace, token1, other = match.groups()
@@ -120,12 +144,42 @@ def translate():
                 
                 # reformat if ((var1 & 1U) == 0)
                 # to if !var1
-                pattern2 = r"(\s*)if \(\((.+?) & 1U\) == 0\)(.*)"
-                match = re.search(pattern2, line)
+                pattern = r"(\s*)if \(\((.+?) & 1U\) == 0\)(.*)"
+                match = re.search(pattern, line)
                 if match:
                     print(match)
                     whitespace, token1, other = match.groups()
                     line = f"{whitespace}if !{token1}{other}\n"
+                
+                
+                # reformat (bool)(var1 & 1)
+                # to var1
+                pattern = r"(\s*)(.*)\(bool\)\((.+?) & 1\)(.*)"
+                match = re.search(pattern, line)
+                if match:
+                    print(match)
+                    whitespace, other1, token1, other2 = match.groups()
+                    line = f"{whitespace}{other1}{token1}{other2}\n"
+                
+                
+                # reformat lib::L2CValue::as_integer(var1)
+                # to var1
+                pattern = r"(\s*)(.*)lib::L2CValue::as_integer\((.+?)\)(.*)"
+                match = re.search(pattern, line)
+                if match:
+                    print(match)
+                    whitespace, other1, token1, other2 = match.groups()
+                    line = f"{whitespace}{other1}{token1}{other2}\n"
+                
+                
+                # reformat lib::L2CValue::as_hash(var1)
+                # to var1
+                pattern = r"(\s*)(.*)lib::L2CValue::as_hash\((.+?)\)(.*)"
+                match = re.search(pattern, line)
+                if match:
+                    print(match)
+                    whitespace, other1, token1, other2 = match.groups()
+                    line = f"{whitespace}{other1}{token1}{other2}\n"
                 
                 
                 modified_lines.append(line)  
