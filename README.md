@@ -2,7 +2,7 @@ This script should hopefully make the process of translating SSBU status scripts
 
 The script will also keep code on the same line it started on; i.e. if a particular bit of code is on line 57 in the original, it will still be on line 57 when the script is done. That way, any lines of code that need additional work can be easily investigated by comparing against the original code.
 
-I also left in the tilde lines as comments reformatted as ```//free(var)``` since I sometimes find them helpful for following the logic of the script.
+I also left in the tilde lines as comments reformatted as ```// free(var)``` since I sometimes find them helpful for following the logic of the script.
 
 I'm not a Python expert by any means so this code is probably pretty inefficient, but it works for now at the very least.
 
@@ -66,22 +66,22 @@ output:
   aLStack96 = _FIGHTER_YOSHI_STATUS_SPECIAL_HI_FLAG_EGG_APPEAR;
   iVar2 = aLStack96;
   WorkModule::off_flag(fighter.module_accessor,iVar2);
-  //free(aLStack96);
+  // free(aLStack96);
   aLStack96 = _FIGHTER_YOSHI_STATUS_SPECIAL_HI_FLAG_EGG_SHOOT;
   iVar2 = aLStack96;
   WorkModule::off_flag(fighter.module_accessor,iVar2);
-  //free(aLStack96);
+  // free(aLStack96);
   aLStack96 = 0;
   aLStack112 = _FIGHTER_YOSHI_STATUS_SPECIAL_HI_WORK_INT_EGG_COUNT;
   iVar2 = aLStack96;
   iVar3 = aLStack112;
   WorkModule::set_int(fighter.module_accessor,iVar2,iVar3);
-  //free(aLStack112);
-  //free(aLStack96);
+  // free(aLStack112);
+  // free(aLStack96);
   pLVar5 = fighter.global_table[0x16];
   aLStack96 = _SITUATION_KIND_GROUND;
   uVar6 = pLVar5 == aLStack96;
-  //free(aLStack96);
+  // free(aLStack96);
   if !uVar6 {
     aLStack96 = 0xed8a31e01;
     aLStack112 = 0.0;
@@ -90,12 +90,12 @@ output:
     HVar7 = aLStack96;
     fVar8 = (float)lib::L2CValue::as_number(aLStack112);
     fVar9 = (float)lib::L2CValue::as_number(aLStack128);
-    bVar1 = lib::L2CValue::as_bool(aLStack144);
+    bVar1 = aLStack144;
     MotionModule::change_motion
               (fighter.module_accessor,HVar7,fVar8,fVar9,bVar1,0.0,false,false);
-    //free(aLStack144);
-    //free(aLStack128);
-    //free(aLStack112);
+    // free(aLStack144);
+    // free(aLStack128);
+    // free(aLStack112);
   }
 }
 ```
