@@ -18,7 +18,7 @@ I have literally only tested it on one computer, in a directory which contains a
 
 
 
-Here's a tiny example of what the output looks like:
+Here's a small sample of what the output looks like:
 
 original:
 ```
