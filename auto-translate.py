@@ -1,13 +1,19 @@
 # auto-translate.py
-# v0.4
+# v0.5
 
 # ideas/todo:
 # operator.cast.to.bool ?
-# other as_[type]() functions (currently handling as_integer() and as_hash())
+# other as_[type]() functions (currently handling as_integer(), as_hash(), as_bool())
+#     can these all be handled with one case?
 # _SITUATION... -> *SITUATION... (also _FIGHTER..., _GROUND..., etc)
 #     this seems difficult to do comprehensively without a complete list of cases where this happens
 # returns? i.e. return_value = 0; -> return 0.into();
 #     this one would need to be at the bottom since it depends on the formatting
+# function headers?
+
+# in lines such as this:
+#             (this->moduleAccessor,(bool)(bVar1 & 1),iVar5,(bool)(bVar2 & 1),(bool)(bVar3 & 1),
+# the code that changes (bool)(var & 1) to var only runs once
 
 
 import os
@@ -199,6 +205,15 @@ def translate():
                     line = f"{whitespace}{other1}{token1}{other2}\n"
                 
                 
+                # reformat lib::L2CValue::as_bool(var1)
+                # to var1
+                pattern = r"(\s*)(.*)lib::L2CValue::as_bool\((.+?)\)(.*)"
+                match = re.search(pattern, line)
+                if match:
+                    whitespace, other1, token1, other2 = match.groups()
+                    line = f"{whitespace}{other1}{token1}{other2}\n"
+                
+                
                 
                 
                 # ======= misc =======
@@ -214,7 +229,7 @@ def translate():
                 
                 # reformat lib::L2CValue::L2CValue(var1,var2);
                 # to var1 = var2;
-                pattern = r"(\s*)lib::L2CValue::L2CValue\((.+?),\s*(.+?)\);\n"
+                pattern = r"(\s*)lib::L2CValue::L2CValue\((.+?),(.+?)\);\n"
                 match = re.fullmatch(pattern, line)
                 if match:
                     whitespace, token1, token2 = match.groups()
@@ -227,7 +242,7 @@ def translate():
                 match = re.fullmatch(pattern, line)
                 if match:
                     whitespace, token1 = match.groups()
-                    line = f"{whitespace}//free({token1});\n"
+                    line = f"{whitespace}// free({token1});\n"
                 
                 
                 modified_lines.append(line)  
