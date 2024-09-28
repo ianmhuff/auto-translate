@@ -14,4 +14,4 @@ Place auto-translate.py in the same directory as the files containing the script
 
 The script will (should) indiscriminately and irrevocably modify any .txt, .c, or .rs files it finds in the directory it is run in. I might add some kind of additional safety/guardrails later but for now there is nothing else. I also make no guarantees that there isn't something, like, horribly wrong with the implementation of searching for files.
 
-I have literally only tested it on one computer, in a directory which contains auto-translate.py, a copy of a fresh status script, and nothing else. Run it at your own peril and all that.
+I have literally only tested it on one computer, in a directory which contains auto-translate.py and a couple of test files. Run it at your own peril and all that.
