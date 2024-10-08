@@ -2,7 +2,7 @@ This script should hopefully make the process of translating SSBU status scripts
 
 The script will also keep code on the same line it started on; i.e. if a particular bit of code is on line 57 in the original, it will still be on line 57 when the script is done. That way, any lines of code that need additional work can be easily investigated by comparing against the original code.
 
-I also left in the tilde lines as comments reformatted as ```// free(var)``` since I sometimes find them helpful for following the logic of the script.
+I also left in the tilde lines as comments reformatted as `// free(var)` since I sometimes find them helpful for following the logic of the script.
 
 I'm not a Python expert by any means so this code is probably pretty inefficient, but it works for now at the very least.
 
@@ -10,11 +10,53 @@ How to use:
 
 Place auto-translate.py in the same directory as the files containing the scripts to be translated.
 
+
 ==== CAUTION ====
 
 The script will (should) indiscriminately and irrevocably modify any .txt, .c, or .rs files it finds in the directory it is run in. I might add some kind of additional safety/guardrails later but for now there is nothing else. I also make no guarantees that there isn't something, like, horribly wrong with the implementation of searching for files.
 
 I have literally only tested it on one computer, in a directory which contains auto-translate.py and a couple of test files. Run it at your own peril and all that.
+
+
+List of modifications:
+- Removals: the following substrings are replaced with "" on all lines:
+  - `(L2CValue *)&`
+  - `(L2CValue *)`
+  - `app::lua_bind::`
+  - `_impl`
+  - `return_value_xx`
+ 
+- Replacements: the following substrings are removed and replaced with different substrings:
+  - `__` -> `::`
+  - `this->moduleAccessor` -> `fighter.module_accessor`
+  - `this->globalTable` -> `fighter.global_table`
+
+- Operators: lines containing the following "operator" functions are restructured:
+  - `lib::L2CValue::operator[op](var1,var2,var3)` -> `var3 = var1 [op] var2`
+  - `lib::L2CValue::operator=(var1,var2)` -> `var1 = var2`
+  - `lib::L2CValue::operator[](var1,var2)` -> `var1[var2]`
+  - `lib::L2CValue::operator[op](var1,var2)` -> `var1 [op] var2`
+ 
+- If Statements: the conditions of if statements are simplified:
+  - `if ((var1 & 1) != 0)` -> `if var1`
+  - `if ((var1 & 1) == 0)` -> `if !var1`
+  - `if ((var1 & 1U) != 0)` -> `if var1`
+  - `if ((var1 & 1U) == 0)` -> `if !var1`
+
+- As Type: the following as_(type)s are simplified:
+  - `lib::L2CValue::as_integer(var1)` -> `var1`
+  - `lib::L2CValue::as_hash(var1)` -> `var1`
+  - `lib::L2CValue::as_bool(var1)` -> `var1`
+
+- Misc:
+  - `(bool)(var1 & 1)` -> `var1`
+  - `lib::L2CValue::L2CValue(var1,var2);` -> `var1 = var2;`
+  - `lib::L2CValue::~L2CValue(var1);` -> `// free(var1);`
+
+
+- Known Issues:
+  - in lines containing multiple instances of the same recognized format, such as this example, only one instance will be fixed
+    - `(this->moduleAccessor,(bool)(bVar1 & 1),iVar5,(bool)(bVar2 & 1),(bool)(bVar3 & 1),`
 
 
 
