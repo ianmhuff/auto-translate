@@ -1,5 +1,6 @@
 import os
 import re
+import csv
 
 def main():
     current_directory = os.getcwd()
@@ -88,8 +89,8 @@ def translate_script(file_path):
         # reformat lib::L2CValue::L2CValue(var1,var2)
         # to var1 = var2
         (r"lib::L2CValue::L2CValue\((.+?),(.+?)\)", r"\1 = \2"),
-        # reformat lib::L2CValue::~L2CValue(var1);
-        # to //free(var1);
+        # reformat lib::L2CValue::~L2CValue(var1)
+        # to //free(var1)
         (r"lib::L2CValue::~L2CValue\((.+?)\)", r"// free(\1)"),
         # Format else statements
         (r'\}\s*\n\s*else\s*\n*', '} else '),
@@ -101,6 +102,7 @@ def translate_script(file_path):
         r",return_value_\d+" # Removes return_value_XX
     ]
     content = remove_regex(content, regex_removals)
+    content = replace_hash(content)
 
     # Write back to file
     with open(file_path, 'w', encoding='utf-8') as file:
@@ -139,6 +141,26 @@ def remove_regex(content, removals):
     for removal in removals:
         content = re.sub(removal, '', content)
     return content
+
+def replace_hash(content):
+    hash_format = r"0x[0-9a-f]+"
+    content = re.sub(hash_format, convert_hash, content)
+    return content
+
+def convert_hash(match):
+
+    hash_value = match.group(0)
+
+    # if the hash value is smaller than the smallest value in ParamLabels.csv, do nothing for now
+    if int(hash_value, 16) < 0x0101d41b76:
+        return hash_value
+
+    with open('ParamLabels.csv', newline='') as param_labels_file:
+        reader = csv.reader(param_labels_file, delimiter=',', quotechar='|')
+        for row in reader:
+            if int(row[0], 16) == int(hash_value, 16):
+                return "Hash40::new(\"" + row[1] + "\")"
+        return hash_value # do nothing if the hash is not found in ParamLabels.csv
 
 # Formats function name. Takes file content and script type as args
 def format_function_name(content, script_type):
