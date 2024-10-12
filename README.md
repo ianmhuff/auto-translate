@@ -15,9 +15,6 @@ Place auto-translate.py in the same directory as the files containing the script
 
 The script will (should) indiscriminately and irrevocably modify any .txt, .c, or .rs files it finds in the directory it is run in. I might add some kind of additional safety/guardrails later but for now there is nothing else. I also make no guarantees that there isn't something, like, horribly wrong with the implementation of searching for files.
 
-I have literally only tested it on one computer, in a directory which contains auto-translate.py and a couple of test files. Run it at your own peril and all that.
-
-
 List of modifications:
 - Removals: the following substrings are replaced with "" on all lines:
   - `(L2CValue *)&`
@@ -52,12 +49,6 @@ List of modifications:
   - `(bool)(var1 & 1)` -> `var1`
   - `lib::L2CValue::L2CValue(var1,var2);` -> `var1 = var2;`
   - `lib::L2CValue::~L2CValue(var1);` -> `// free(var1);`
-
-
-- Known Issues:
-  - in lines containing multiple instances of the same recognized format, such as this example, only one instance will be fixed
-    - `(this->moduleAccessor,(bool)(bVar1 & 1),iVar5,(bool)(bVar2 & 1),(bool)(bVar3 & 1),`
-
 
 
 Here's a small sample of what the output looks like:
