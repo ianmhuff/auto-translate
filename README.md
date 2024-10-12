@@ -1,32 +1,34 @@
+# autotranslate.py
 This script should hopefully make the process of translating SSBU status scripts a little less tedious by automatically performing many of the more basic steps, allowing you to focus on just cleaning up the logic.
 
-The script will also keep code on the same line it started on; i.e. if a particular bit of code is on line 57 in the original, it will still be on line 57 when the script is done. That way, any lines of code that need additional work can be easily investigated by comparing against the original code.
-
-I also left in the tilde lines as comments reformatted as `// free(var)` since I sometimes find them helpful for following the logic of the script.
-
-I'm not a Python expert by any means so this code is probably pretty inefficient, but it works for now at the very least.
-
-How to use:
-
+## Usage
 Place auto-translate.py in the same directory as the files containing the scripts to be translated.
 
-
-==== CAUTION ====
-
+**==== CAUTION ====**  
 The script will (should) indiscriminately and irrevocably modify any .txt, .c, or .rs files it finds in the directory it is run in. I might add some kind of additional safety/guardrails later but for now there is nothing else. I also make no guarantees that there isn't something, like, horribly wrong with the implementation of searching for files.
 
-List of modifications:
-- Removals: the following substrings are replaced with "" on all lines:
+## List of modifications
+- Changes indentation from 2 to 4 spaces
+- Formats function calls 
+  - eg `app::lua_bind::WorkModule__is_flag_impl` to `WorkModule::is_flag`
+- Formats function header 
+  - eg `void __thiscall L2CFighterDonkey::status::FinalAttack_main(L2CFighterDonkey *this,L2CValue *return_value)` to `unsafe extern "C" fn donkey_finalattack_main(fighter: &mut L2CFighterCommon) -> L2CValue {`
+- Comments out `goto` and `LAB:` lines
+- Removes `_` from beginning of consts
+
+- Removals: removes these strings entirely
   - `(L2CValue *)&`
   - `(L2CValue *)`
-  - `app::lua_bind::`
-  - `_impl`
-  - `return_value_xx`
+  - `(float)`, `(int)`, `(bool)`, `(long)`
+  - `return_value_XX`
  
-- Replacements: the following substrings are removed and replaced with different substrings:
+- Replacements: the following substrings are replaced with different substrings:
   - `__` -> `::`
-  - `this->moduleAccessor` -> `fighter.module_accessor`
-  - `this->globalTable` -> `fighter.global_table`
+  - `this` -> `fighter/weapon` (depending on script type)
+  - `->moduleAccessor` -> `.module_accessor`
+  - `->globalTable` -> `.global_table`
+  - `->luaStateAgent` -> `.lua_state_agent`
+  - `lib::L2CValue::as_[type](var1)` -> `var1`
 
 - Operators: lines containing the following "operator" functions are restructured:
   - `lib::L2CValue::operator[op](var1,var2,var3)` -> `var3 = var1 [op] var2`
@@ -40,20 +42,14 @@ List of modifications:
   - `if ((var1 & 1U) != 0)` -> `if var1`
   - `if ((var1 & 1U) == 0)` -> `if !var1`
 
-- As Type: the following as_(type)s are simplified:
-  - `lib::L2CValue::as_integer(var1)` -> `var1`
-  - `lib::L2CValue::as_hash(var1)` -> `var1`
-  - `lib::L2CValue::as_bool(var1)` -> `var1`
-
 - Misc:
-  - `(bool)(var1 & 1)` -> `var1`
-  - `lib::L2CValue::L2CValue(var1,var2);` -> `var1 = var2;`
   - `lib::L2CValue::~L2CValue(var1);` -> `// free(var1);`
+  - `lib::L2CValue::L2CValue(var1,var2);` -> `var1 = var2;`
 
+## Example
+Here's a small sample of what the output looks like: (OUTDATED, v0.5)
 
-Here's a small sample of what the output looks like:
-
-original:
+Original:
 ```
 {
   lib::L2CValue::L2CValue(aLStack96,_FIGHTER_YOSHI_STATUS_SPECIAL_HI_FLAG_EGG_APPEAR);
@@ -93,7 +89,7 @@ original:
 }
 ```
 
-output:
+Output:
 ```
 {
   aLStack96 = _FIGHTER_YOSHI_STATUS_SPECIAL_HI_FLAG_EGG_APPEAR;
