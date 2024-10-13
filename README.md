@@ -10,11 +10,11 @@ Either click on `autotranslate.py` or run it in the console with `python autotra
 - Formats function calls (eg `app::lua_bind::WorkModule__is_flag_impl` to `WorkModule::is_flag`)
 - Formats function header (eg `void __thiscall L2CFighterDonkey::status::FinalAttack_main(L2CFighterDonkey *this,L2CValue *return_value)` to `unsafe extern "C" fn donkey_finalattack_main(fighter: &mut L2CFighterCommon) -> L2CValue {`)
 - Comments out `goto` and `LAB:` lines
-- Removes `_` from beginning of consts (buggy)
+- Removes `_` from beginning of consts
 - Removes all data type conversions (eg `(int)`, `(long)`, `(L2CValue *)`)
 - Removes `return_value_XX`
 - Translates hashes
-- Reformats `change_status`, `sub_shift_status_main`, `sub_wait_ground_check_common`, and `sub_air_check_fall_common`
+- Reformats `change_status`, `sub_shift_status_main`/`fastshift`, `sub_wait_ground_check_common`, `sub_air_check_fall_common`, `Vector3::create`, and `lerp`
  
 - Replacements: the following substrings are replaced with different substrings:
   - `__` -> `::`
@@ -51,7 +51,7 @@ path_to_param_labels =# Filepath to ParamLabels.csv
 ```
 
 ## Example
-Here's a small sample of what the output looks like: (v0.8.1)
+Here's a small sample of what the output looks like: **(v0.8.2)**
 
 Original:
 ```

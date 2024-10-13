@@ -66,7 +66,6 @@ def translate_script(file_path, config):
         ('->moduleAccessor', '.module_accessor'), 
         ('->globalTable', '.global_table'), 
         ('->luaStateAgent', '.lua_state_agent'),
-        (',_', ','), # Doesn't cover every occurrence, todo
         ('&LStack', 'LStack'),
         ('&local_', 'local_'),
     ]
@@ -134,19 +133,31 @@ def translate_script(file_path, config):
             r'(\w+::\w+)\s*\(([\s\S]*?)\)\s*;', 
             lambda m: "{}({});".format(m.group(1), ','.join(arg.strip() for arg in re.split(r',\s*', m.group(2))))
         ),
-        # Step 2: Pipes
+        # Step 2: Pipes (also adds spaces between function args)
         (
             r'(\w+::\w+)\s*\(([\s\S]*?)\)\s*;', 
             lambda m: "{}({});".format(m.group(1), re.sub(r'\s*\|\s*', ' | ', m.group(2).replace(',', ', ')))
         ),
-        # sub_shift_status_main
-        (r"lua2cpp::L2CFighterCommon::sub_shift_status_main\((.+?),\s*0x([0-9a-fA-F]+),\s*(\w+)\)", r"\1.sub_shift_status_main(L2CValue::Ptr(0x\2 as *const () as _))"),
+        # sub_shift_status_main, fastshift
+        (
+            r"lua2cpp::L2CFighter(?:Common|Base)::(sub_shift_status_main|fastshift)\((.+?),\s*0x([0-9a-fA-F]+),\s*(\w+)\)", 
+            r"\2.\1(L2CValue::Ptr(0x\3 as *const () as _))"
+        ),
         # change_status
         (r"lua2cpp::L2CFighterBase::change_status\((.+?),\s*(0x[0-9a-fA-F]+),\s*(0x[0-9a-fA-F]+)\)", r"\1.change_status(\2.into(), \3.into())"),
         # sub_wait_ground_check_common
         (r"lua2cpp::L2CFighterCommon::sub_wait_ground_check_common\((.+?),\s*(0x[0-9a-fA-F]+),\s*(\w+)\)", r"\3 = \1.sub_wait_ground_check_common(\2.into()).get_bool()"),
         # sub_air_check_fall_common
         (r"lua2cpp::L2CFighterCommon::sub_air_check_fall_common\((.+?),\s*(\w+)\)", r"\2 = \1.sub_air_check_fall_common().get_bool()"),
+        # Reformat Vector3::create
+        (r"lua2cpp::L2CFighterBase::Vector3::create\((.+?),\s*(0x[0-9a-fA-F]+),\s*(0x[0-9a-fA-F]+),\s*(0x[0-9a-fA-F]+),\s*(\w+)\)", r"\5 = Vector3f{ x: \2, y: \3, z: \4 }"),
+        # L2CFighterBase::lerp
+        (
+            r"lua2cpp::L2CFighterBase::lerp\((.+?),\s*0x([0-9a-fA-F]+),\s*0x([0-9a-fA-F]+),\s*0x([0-9a-fA-F]+),\s*(\w+)\)", 
+            r"\5 = \1.lerp(0x\2.into(), 0x\3.into(), 0x\4.into()).get_f32()"
+        ),
+        # Remove underscore from before const names
+        (r'([,|=])\s*_', r'\1 '),
     ]
     content = replace_regex(content, regex_replacements)
     plaintext_removals2 = [
