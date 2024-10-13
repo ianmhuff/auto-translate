@@ -10,10 +10,11 @@ Either click on `autotranslate.py` or run it in the console with `python autotra
 - Formats function calls (eg `app::lua_bind::WorkModule__is_flag_impl` to `WorkModule::is_flag`)
 - Formats function header (eg `void __thiscall L2CFighterDonkey::status::FinalAttack_main(L2CFighterDonkey *this,L2CValue *return_value)` to `unsafe extern "C" fn donkey_finalattack_main(fighter: &mut L2CFighterCommon) -> L2CValue {`)
 - Comments out `goto` and `LAB:` lines
-- Removes `_` from beginning of consts
+- Removes `_` from beginning of consts (buggy)
 - Removes all data type conversions (eg `(int)`, `(long)`, `(L2CValue *)`)
 - Removes `return_value_XX`
 - Translates hashes
+- Reformats `change_status`, `sub_shift_status_main`, `sub_wait_ground_check_common`, and `sub_air_check_fall_common`
  
 - Replacements: the following substrings are replaced with different substrings:
   - `__` -> `::`
@@ -50,7 +51,7 @@ path_to_param_labels =# Filepath to ParamLabels.csv
 ```
 
 ## Example
-Here's a small sample of what the output looks like: (v0.8)
+Here's a small sample of what the output looks like: (v0.8.1)
 
 Original:
 ```
@@ -130,7 +131,7 @@ Output:
 unsafe extern "C" fn donkey_finalattack_main(fighter: &mut L2CFighterCommon) -> L2CValue {
     aLStack80 = false;
     bVar1 = aLStack80;
-    AreaModule::set_whole(fighter.module_accessor,bVar1);
+    AreaModule::set_whole(fighter.module_accessor, bVar1);
     this_00 = fighter.global_table[0x16];
     aLStack80 = SITUATION_KIND_GROUND;
     uVar3 = this_00 == aLStack80;
@@ -143,7 +144,7 @@ unsafe extern "C" fn donkey_finalattack_main(fighter: &mut L2CFighterCommon) -> 
         fVar5 = aLStack96;
         fVar6 = aLStack112;
         bVar1 = aLStack128;
-        MotionModule::change_motion(fighter.module_accessor,HVar4,fVar5,fVar6,bVar1,0.0,false,false);
+        MotionModule::change_motion(fighter.module_accessor, HVar4, fVar5, fVar6, bVar1, 0.0, false, false);
     } else {
         aLStack80 = Hash40::new("final_attack");
         aLStack96 = 0.0;
@@ -153,17 +154,17 @@ unsafe extern "C" fn donkey_finalattack_main(fighter: &mut L2CFighterCommon) -> 
         fVar5 = aLStack96;
         fVar6 = aLStack112;
         bVar1 = aLStack128;
-        MotionModule::change_motion(fighter.module_accessor,HVar4,fVar5,fVar6,bVar1,0.0,false,false);
+        MotionModule::change_motion(fighter.module_accessor, HVar4, fVar5, fVar6, bVar1, 0.0, false, false);
     }
     aLStack80 = FIGHTER_KINETIC_ENERGY_ID_STOP;
     iVar2 = aLStack80;
-    KineticModule::enable_energy(fighter.module_accessor,iVar2);
+    KineticModule::enable_energy(fighter.module_accessor, iVar2);
     aLStack80 = FIGHTER_KINETIC_ENERGY_ID_GROUND_MOVEMENT;
     iVar2 = aLStack80;
-    KineticModule::unable_energy(fighter.module_accessor,iVar2);
+    KineticModule::unable_energy(fighter.module_accessor, iVar2);
     FUN_710000cc50(fighter);
     aLStack80 = FinalAttack_main_loop;
-    lua2cpp::L2CFighterCommon::sub_shift_status_main(fighter,0xb0,return_value);
+    fighter.sub_shift_status_main(L2CValue::Ptr(0xb0 as *const () as _));
     return;
 }
 ```

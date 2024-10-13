@@ -67,6 +67,8 @@ def translate_script(file_path, config):
         ('->globalTable', '.global_table'), 
         ('->luaStateAgent', '.lua_state_agent'),
         (',_', ','), # Doesn't cover every occurrence, todo
+        ('&LStack', 'LStack'),
+        ('&local_', 'local_'),
     ]
     content = replace_plaintext(content, plaintext_replacements)
     plaintext_removals = [
@@ -82,6 +84,7 @@ def translate_script(file_path, config):
         '(Vector3f *)',
         '(L2CAgent *)',
         '(L2CValue)', # todo combine
+        '(BattleObjectModuleAccessor *)',
     ]
     content = remove_plaintext(content, plaintext_removals)
     regex_replacements = [
@@ -125,8 +128,25 @@ def translate_script(file_path, config):
         (r"lib::L2CValue::operator.cast.to.bool\((.*)\)", r"\1"),
         # Format else statements
         (r'\}\s*\n\s*else\s*\n*', '} else '),
-        # Format function definitions to one line, doesn't work if it's 3+ lines)
-        (r'(\w+::\w+)\s*\((.*?)\)\s*;', r'\1(\2);'),
+        # Format function definitions to one line
+        # Step 1: Line breaks and spaces
+        (
+            r'(\w+::\w+)\s*\(([\s\S]*?)\)\s*;', 
+            lambda m: "{}({});".format(m.group(1), ','.join(arg.strip() for arg in re.split(r',\s*', m.group(2))))
+        ),
+        # Step 2: Pipes
+        (
+            r'(\w+::\w+)\s*\(([\s\S]*?)\)\s*;', 
+            lambda m: "{}({});".format(m.group(1), re.sub(r'\s*\|\s*', ' | ', m.group(2).replace(',', ', ')))
+        ),
+        # sub_shift_status_main
+        (r"lua2cpp::L2CFighterCommon::sub_shift_status_main\((.+?),\s*0x([0-9a-fA-F]+),\s*(\w+)\)", r"\1.sub_shift_status_main(L2CValue::Ptr(0x\2 as *const () as _))"),
+        # change_status
+        (r"lua2cpp::L2CFighterBase::change_status\((.+?),\s*(0x[0-9a-fA-F]+),\s*(0x[0-9a-fA-F]+)\)", r"\1.change_status(\2.into(), \3.into())"),
+        # sub_wait_ground_check_common
+        (r"lua2cpp::L2CFighterCommon::sub_wait_ground_check_common\((.+?),\s*(0x[0-9a-fA-F]+),\s*(\w+)\)", r"\3 = \1.sub_wait_ground_check_common(\2.into()).get_bool()"),
+        # sub_air_check_fall_common
+        (r"lua2cpp::L2CFighterCommon::sub_air_check_fall_common\((.+?),\s*(\w+)\)", r"\2 = \1.sub_air_check_fall_common().get_bool()"),
     ]
     content = replace_regex(content, regex_replacements)
     plaintext_removals2 = [
@@ -291,7 +311,11 @@ def format_function_name(content, script_type):
         content = re.sub(pattern, format_fun, content)
 
     # Remove everything before function def & ret
-    return content[content.find("unsafe"):]
+    index = content.find("unsafe")
+    if index != -1:
+        return content[index:]
+    else:
+        return content
 
 # Removes all lines with a tilde
 def remove_tilde_lines(content):
