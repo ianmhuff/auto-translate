@@ -92,41 +92,29 @@ def translate_script(file_path, config):
     regex_replacements = [
         # Replace "this" with either "fighter" or "weapon"
         (r'this(?=[.,)])', script_type),
-        # reformat lib::L2CValue::operator[op](var1,var2,var3)
-        # to var3 = var1 [op] var2
+        # lib::L2CValue::operator[op](var1,var2,var3) -> var3 = var1 [op] var2
         (r"lib::L2CValue::operator(.*)\((.+?),(.+?),(.+?)\)", r"\4 = \2 \1 \3"),
-        # reformat lib::L2CValue::operator=(var1,var2)
-        # to var1 = var2
+        # lib::L2CValue::operator=(var1,var2) -> var1 = var2
         (r"lib::L2CValue::operator=\((.+?),(.+?)\)", r"\1 = \2"),
-        # reformat lib::L2CValue::operator[](var1,var2)
-        # to var1[var2]
+        # lib::L2CValue::operator[](var1,var2) -> var1[var2]
         (r"(.+?)lib::L2CValue::operator\[\]\((.+?),(.+?)\)", r"\1\2[\3]"),
-        # reformat lib::L2CValue::operator[op](var1,var2)
-        # to var1 [op] var2
+        # lib::L2CValue::operator[op](var1,var2) -> var1 [op] var2
         (r"(.+?)lib::L2CValue::operator(.*)\((.+?),(.+?)\)", r"\1\3 \2 \4"),
-        # reformat if ((var1 & 1) != 0)
-        # to if var1
+        # if ((var1 & 1) != 0) -> if var1
         (r"if \(\((.+?) & 1\) != 0\)(.*)", r"if \1\2"),
-        # reformat if ((var1 & 1) == 0)
-        # to if !var1
+        # if ((var1 & 1) == 0) -> if !var1
         (r"if \(\((.+?) & 1\) == 0\)(.*)", r"if !\1\2"),
-        # reformat if ((var1 & 1U) != 0)
-        # to if var1
+        # if ((var1 & 1U) != 0) -> if var1
         (r"if \(\((.+?) & 1U\) != 0\)(.*)", r"if \1\2"),
-        # reformat if ((var1 & 1U) == 0)
-        # to if !var1 
+        # if ((var1 & 1U) == 0) -> if !var1 
         (r"if \(\((.+?) & 1U\) == 0\)(.*)", r"if !\1\2"),
-        # reformat lib::L2CValue::as_[data_type](var1)
-        # to var1
+        # lib::L2CValue::as_[data_type](var1) -> var1
         (r"(.*)lib::L2CValue::as_\w+\((.+?)\)(.*)", r"\1\2\3"),
-        # reformat (bool)(var1 & 1)
-        # to var1
+        # (bool)(var1 & 1) -> var1
         (r"(.*)\(bool\)\((.+?) & 1\)(.*)", r"\1\2\3"),
-        # reformat lib::L2CValue::L2CValue(var1,var2)
-        # to var1 = var2
+        # lib::L2CValue::L2CValue(var1,var2) -> var1 = var2
         (r"lib::L2CValue::L2CValue\((.+?),(.+?)\)", r"\1 = \2"),
-        # Reformat lib::L2CValue::operator.cast.to.bool(aLStackXX)
-        # to aLStackXX
+        # lib::L2CValue::operator.cast.to.bool(aLStackXX) -> aLStackXX
         (r"lib::L2CValue::operator.cast.to.bool\((.*)\)", r"\1"),
         # Format else statements
         (r'\}\s*\n\s*else\s*\n*', '} else '),
