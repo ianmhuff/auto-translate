@@ -37,7 +37,8 @@ def main():
 
             # Run translate function on script
             file_path = os.path.join(current_directory, filename)
-            translate_script(file_path, config)
+            new_file_path = translate_script(file_path, config)
+            print(f"Processed file: {new_file_path}")
     else:
         # FILES DRAGGED ONTO SCRIPT
         for file_path in sys.argv[1:]:
@@ -176,6 +177,21 @@ def translate_script(file_path, config):
         r",return_value_\d+" # Removes return_value_XX
     ]
     content = remove_regex(content, regex_removals)
+    regex_replacements2 = [
+        # reformat return lines in cases where a return_value is assigned and immediately returned
+        (r"return_value = (.+?);\s*return;", r"return \1.into();"),
+    ]
+    content = replace_regex(content, regex_replacements2)
+
+
+    # reformat main_loop function names in sub_shift_status_main, if present
+    if "sub_shift_status_main" in content:
+        function_name_pattern = r"unsafe extern \"C\" fn (.+?)\(.+?\)"
+        new_function_name = re.search(function_name_pattern, content).groups()[0]
+        print(new_function_name)
+        shift_status_regex = [(r" = .+?;(\s*)fighter.sub_shift_status_main", r" = " + new_function_name + r"_loop;\1fighter.sub_shift_status_main")]
+        content = replace_regex(content, shift_status_regex)
+
 
     # Replace hashes
     content = replace_hashes(content)
