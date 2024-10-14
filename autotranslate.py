@@ -74,8 +74,10 @@ def translate_script(file_path, config):
         '(L2CValue *)&',
         '(L2CValue *)',
         'app::lua_bind::',
+        'app::',
         '_impl',
         '(float)',
+        '(float *)',
         '(int)',
         '(long)',
         '(ulong)',
@@ -156,12 +158,18 @@ def translate_script(file_path, config):
             r"lua2cpp::L2CFighterBase::lerp\((.+?),\s*0x([0-9a-fA-F]+),\s*0x([0-9a-fA-F]+),\s*0x([0-9a-fA-F]+),\s*(\w+)\)", 
             r"\5 = \1.lerp(0x\2.into(), 0x\3.into(), 0x\4.into()).get_f32()"
         ),
+        # clear_lua_stack
+        (r"lib::L2CAgent::clear_lua_stack\((.+?)\)", r"\1.clear_lua_stack()"),
+        # push_lua_stack
+        (r"lib::L2CAgent::push_lua_stack\((.+?),\s*(\w+)\)", r"\1.push_lua_stack(&mut L2CValue::new_num(\2))"),
+        # pop_lua_stack
+        (r"lib::L2CAgent::pop_lua_stack\((.+?),\s*(\d+),\s*(\w+)\)", r"\3 = \1.pop_lua_stack(\2)"),
         # Remove underscore from before const names
         (r'([,|=])\s*_', r'\1 '),
     ]
     content = replace_regex(content, regex_replacements)
     plaintext_removals2 = [
-        '(bool)'
+        '(bool)',
     ]
     content = remove_plaintext(content, plaintext_removals2)
     regex_removals = [
@@ -287,6 +295,7 @@ def convert_hash(match):
         return hash_value # do nothing if the hash is not found in ParamLabels.csv
 
 # Formats function name. Takes file content and script type as args
+# todo does not work if on more than 2 lines
 def format_function_name(content, script_type):
     if script_type != "fun":
         # normal script

@@ -15,6 +15,7 @@ Either click on `autotranslate.py` or run it in the console with `python autotra
 - Removes `return_value_XX`
 - Translates hashes
 - Reformats `change_status`, `sub_shift_status_main`/`fastshift`, `sub_wait_ground_check_common`, `sub_air_check_fall_common`, `Vector3::create`, and `lerp`
+- Reformats `clear`, `push`, and `pop` for `lua_stack`s
  
 - Replacements: the following substrings are replaced with different substrings:
   - `__` -> `::`
@@ -51,7 +52,7 @@ path_to_param_labels =# Filepath to ParamLabels.csv
 ```
 
 ## Example
-Here's a small sample of what the output looks like: **(v0.8.2)**
+Here's a small sample of what the output looks like: **(v0.8.3)**
 
 Original:
 ```
