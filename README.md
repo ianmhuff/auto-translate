@@ -18,6 +18,7 @@ Either click on `autotranslate.py` or run it in the console with `python autotra
 - Reformats `clear`, `push`, and `pop` for `lua_stack`s
 - Reformats returns
 - Reformats `main_loop` function names used in `sub_shift_status_main` calls
+- Optionally renames the file once completed
  
 - Replacements: the following substrings are replaced with different substrings:
   - `__` -> `::`
@@ -50,11 +51,15 @@ keep_var_declarations =# Whether to keep the section of variable declarations at
 [FileHandling]
 search_file_types =# List of file types to look for in the current directory 
 output_file_type =# File type to output in
+output_file_name =# Whether to [keep] the original file name when outputting, or [rename] to the function name
 path_to_param_labels =# Filepath to ParamLabels.csv
+
+[Development]
+condense_script =# Whether to enable the expermental script condenser feature
 ```
 
 ## Example
-Here's a small sample of what the output looks like: **(v0.8.3)**
+Here's a small sample of what the output looks like: **(v0.9.0)**
 
 Original:
 ```
@@ -169,5 +174,21 @@ unsafe extern "C" fn donkey_finalattack_main(fighter: &mut L2CFighterCommon) -> 
     aLStack80 = FinalAttack_main_loop;
     fighter.sub_shift_status_main(L2CValue::Ptr(0xb0 as *const () as _));
     return;
+}
+```
+
+Output (with **v0.9.0**'s experimental `condense_script` feature):
+```rs
+unsafe extern "C" fn donkey_finalattack_main(fighter: &mut L2CFighterCommon) -> L2CValue {
+    AreaModule::set_whole(fighter.module_accessor, false);
+    if fighter.global_table[0x16] != *SITUATION_KIND_GROUND {
+        MotionModule::change_motion(fighter.module_accessor, Hash40::new("final_air_attack"), 0.0, 1.0, false, 0.0, false, false);
+    } else {
+        MotionModule::change_motion(fighter.module_accessor, Hash40::new("final_attack"), 0.0, 1.0, false, 0.0, false, false);
+    }
+    KineticModule::enable_energy(fighter.module_accessor, *FIGHTER_KINETIC_ENERGY_ID_STOP);
+    KineticModule::unable_energy(fighter.module_accessor, *FIGHTER_KINETIC_ENERGY_ID_GROUND_MOVEMENT);
+    FUN_710000cc50(fighter);
+    fighter.sub_shift_status_main(L2CValue::Ptr(donkey_finalattack_main_loop as *const () as _))
 }
 ```
