@@ -16,6 +16,8 @@ Either click on `autotranslate.py` or run it in the console with `python autotra
 - Translates hashes
 - Reformats `change_status`, `sub_shift_status_main`/`fastshift`, `sub_wait_ground_check_common`, `sub_air_check_fall_common`, `Vector3::create`, and `lerp`
 - Reformats `clear`, `push`, and `pop` for `lua_stack`s
+- Reformats returns
+- Reformats `main_loop` function names used in `sub_shift_status_main` calls
  
 - Replacements: the following substrings are replaced with different substrings:
   - `__` -> `::`
