@@ -363,8 +363,7 @@ def condense_script(file_path):
     content = [line for i, line in enumerate(content, start=1) if i not in lines_to_delete]
 
     # Remove return value lines with no actual ret val 
-    return_pattern = r'^\s*return\s+\w+\.into\(\);\s*$'
-    content = [line for line in content if not re.match(return_pattern, line)]
+    content = [line for line in content if line.strip() != "return return_value.into();"]
 
     # Remove " -> L2CValue" from FUN functs with no return in them
     if content and "FUN_71" in content[0]:
