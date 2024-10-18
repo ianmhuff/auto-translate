@@ -28,7 +28,7 @@ def main():
     if len(sys.argv) < 2:
         # SCRIPT CLICKED / RAN IN CONSOLE
         output_file_type = config.get('FileHandling', 'output_file_type')
-        input(f"===WARNING===\nTHIS SCRIPT WILL EDIT ANY {valid_extensions} FILES IN THE CURRENT DIRECTORY AND OUTPUT AS [{output_file_type}]\nIf you wish to proceed, press Enter. Otherwise Ctrl+C to exit\n> ")
+        input(f"===WARNING===\nTHIS SCRIPT WILL READ ALL {valid_extensions} FILES IN THE CURRENT DIRECTORY AND OUTPUT AS [{output_file_type}]\nIf you wish to proceed, press Enter. Otherwise Ctrl+C to exit\n> ")
         for filename in os.listdir(current_directory):
             # Only modify files with specified extensions
             ext = os.path.splitext(filename)[1]
@@ -102,6 +102,17 @@ def translate_script(file_path, config):
     ]
     content = remove_plaintext(content, plaintext_removals)
     regex_replacements = [
+        # Format function definitions to one line
+        # Step 1: Line breaks and spaces
+        (
+            r'(\w+::\w+)\s*\(([\s\S]*?)\)\s*;', 
+            lambda m: "{}({});".format(m.group(1), ','.join(arg.strip() for arg in re.split(r',\s*', m.group(2))))
+        ),
+        # Step 2: Pipes
+        (
+            r'(\w+::\w+)\s*\(([\s\S]*?)\)\s*;', 
+            lambda m: "{}({});".format(m.group(1), re.sub(r'\s*\|\s*', ' | ', m.group(2)))
+        ),
         # Replace "this" with either "fighter" or "weapon"
         (r'this(?=[.,)])', script_type),
         # lib::L2CValue::operator[op](var1,var2,var3) -> var3 = var1 [op] var2
@@ -130,17 +141,6 @@ def translate_script(file_path, config):
         (r"lib::L2CValue::operator.cast.to.bool\((.*)\)", r"\1"),
         # Format else statements
         (r'\}\s*\n\s*else\s*\n*', '} else '),
-        # Format function definitions to one line
-        # Step 1: Line breaks and spaces
-        (
-            r'(\w+::\w+)\s*\(([\s\S]*?)\)\s*;', 
-            lambda m: "{}({});".format(m.group(1), ','.join(arg.strip() for arg in re.split(r',\s*', m.group(2))))
-        ),
-        # Step 2: Pipes (also adds spaces between function args)
-        (
-            r'(\w+::\w+)\s*\(([\s\S]*?)\)\s*;', 
-            lambda m: "{}({});".format(m.group(1), re.sub(r'\s*\|\s*', ' | ', m.group(2).replace(',', ', ')))
-        ),
         # sub_shift_status_main, fastshift
         (
             r"lua2cpp::L2CFighter(?:Common|Base)::(sub_shift_status_main|fastshift)\((.+?),\s*0x([0-9a-fA-F]+),\s*(\w+)\)", 
@@ -148,10 +148,14 @@ def translate_script(file_path, config):
         ),
         # change_status
         (r"lua2cpp::L2CFighterBase::change_status\((.+?),\s*(0x[0-9a-fA-F]+),\s*(0x[0-9a-fA-F]+)\)", r"\1.change_status(\2.into(), \3.into())"),
-        # sub_wait_ground_check_common
-        (r"lua2cpp::L2CFighterCommon::sub_wait_ground_check_common\((.+?),\s*(0x[0-9a-fA-F]+),\s*(\w+)\)", r"\3 = \1.sub_wait_ground_check_common(\2.into()).get_bool()"),
-        # sub_air_check_fall_common
-        (r"lua2cpp::L2CFighterCommon::sub_air_check_fall_common\((.+?),\s*(\w+)\)", r"\2 = \1.sub_air_check_fall_common().get_bool()"),
+        # generic L2CFighterCommon function catch-all (this)
+        (r"lua2cpp::L2CFighterCommon::(.+?)\(([^,]+)\)", r"\2.\1().get_bool()"),
+        # generic L2CFighterCommon function catch-all (this + assignment)
+        (r"lua2cpp::L2CFighterCommon::(.+?)\(([^,]+),\s*(\w*Stack\w*)\)", r"\3 = \2.\1().get_bool()"),
+        # generic L2CFighterCommon function catch-all (this + args + assignment)
+        (r"lua2cpp::L2CFighterCommon::(.+?)\(([^,]+),\s*(.+?),\s*(\w*Stack\w*)\)", r"\4 = \2.\1(\3).get_bool()"),
+        # generic L2CFighterCommon function catch-all (this + args)
+        (r"lua2cpp::L2CFighterCommon::(.+?)\(([^,]+),\s*(.+?)\)", r"\2.\1(\3).get_bool()"),
         # Reformat Vector3::create
         (r"lua2cpp::L2CFighterBase::Vector3::create\((.+?),\s*(0x[0-9a-fA-F]+),\s*(0x[0-9a-fA-F]+),\s*(0x[0-9a-fA-F]+),\s*(\w+)\)", r"\5 = Vector3f{ x: \2, y: \3, z: \4 }"),
         # L2CFighterBase::lerp
@@ -168,7 +172,10 @@ def translate_script(file_path, config):
         # Remove underscore from before const names
         (r'([,|=])\s*_', r'\1 '),
         # reformat main_loop function names in sub_shift_status_main
-        (r" = .+?;(\s*)fighter.sub_shift_status_main", r" = " + new_function_name + r"_loop;\1fighter.sub_shift_status_main")
+        (r" = .+?;(\s*)fighter.sub_shift_status_main", r" = " + new_function_name + r"_loop;\1fighter.sub_shift_status_main"),
+        # add spaces after commas where there aren't already any
+        (r",(?! +)", r", ")
+
     ]
     content = replace_regex(content, regex_replacements)
     plaintext_removals2 = [
@@ -176,7 +183,7 @@ def translate_script(file_path, config):
     ]
     content = remove_plaintext(content, plaintext_removals2)
     regex_removals = [
-        r",return_value_\d+" # Removes return_value_XX
+        r",\s*return_value_\d+" # Removes return_value_XX
     ]
     content = remove_regex(content, regex_removals)
 

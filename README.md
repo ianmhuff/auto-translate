@@ -14,7 +14,8 @@ Either click on `autotranslate.py` or run it in the console with `python autotra
 - Removes all data type conversions (eg `(int)`, `(long)`, `(L2CValue *)`)
 - Removes `return_value_XX`
 - Translates hashes
-- Reformats `change_status`, `sub_shift_status_main`/`fastshift`, `sub_wait_ground_check_common`, `sub_air_check_fall_common`, `Vector3::create`, and `lerp`
+- Reformats `change_status`, `sub_shift_status_main`/`fastshift`, `Vector3::create`, and `lerp`
+- Reformats all `L2CFighterCommon` functions
 - Reformats `clear`, `push`, and `pop` for `lua_stack`s
 - Reformats returns
 - Reformats `main_loop` function names used in `sub_shift_status_main` calls
