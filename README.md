@@ -2,8 +2,12 @@
 This script makes the process of translating SSBU status scripts a little less tedious by automatically performing many of the more basic steps, allowing the user to focus on just cleaning up the logic.
 
 ## Usage
+#### Every file in the folder
 1. Place `autotranslate.py` in the same directory as the files containing the scripts to be translated (one script per file)
-2. Either click on `autotranslate.py` or run it in the console with `python autotranslate.py` to work on any files found in the directory or drag files onto it to translate them.
+2. Click on `autotranslate.py` / run it in the console with `python autotranslate.py` to automatically translate any files found in the current folder
+---
+#### Only select files
+1. Drag files of any type (one script per file) onto `autotranslate.py` to translate them
 
 ## List of modifications
 - Changes indentation from 2 to 4 spaces
@@ -52,11 +56,11 @@ keep_var_declarations =# Whether to keep the section of variable declarations at
 [FileHandling]
 search_file_types =# List of file types to look for in the current directory 
 output_file_type =# File type to output in
-output_file_name =# Whether to [keep] the original file name when outputting, or [rename] to the function name
+output_file_name =# Whether to [keep] the original file name when outputting or [rename] to the function name
 path_to_param_labels =# Filepath to ParamLabels.csv
 
 [Development]
-condense_script =# Whether to enable the expermental script condenser feature
+condense_script =# Whether to enable the experimental script condenser feature
 ```
 
 ## Example
