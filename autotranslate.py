@@ -24,17 +24,23 @@ def main():
     file_types = config.get('FileHandling', 'search_file_types')
     valid_extensions = [file_type.strip() for file_type in file_types.split(',')]
 
+    # Run translate_script and condense_script on a file
+    def translate_helper(file_path, config, do_condense_script):
+        new_file_path = translate_script(file_path, config)
+        print(f"Processed file: {file_path} -> {new_file_path}")
+        if do_condense_script:
+            condense_script(new_file_path)
+            print(f"Condensed file: {new_file_path}")
+
     # Determine how the script was executed
     if len(sys.argv) < 2:
         # SCRIPT CLICKED / RAN IN CONSOLE
         output_file_type = config.get('FileHandling', 'output_file_type')
         input(f"===WARNING===\nThis script will read all {valid_extensions} files in the current directory and output as [{output_file_type}].\nIf you wish to proceed, press Enter. Otherwise Ctrl+C to exit\n> ")
-        if config.has_section('Development') and config.has_option('Development', 'condense_script'):
-            condense_script = config.getboolean('Development', 'condense_script')
-        else: # todo combine
-            condense_script = False
-        if condense_script:
+        is_condense_script = get_is_condense_script(config)
+        if is_condense_script:
             print('===WARNING===\nCondense script feature is currently in development and will be buggy')
+        # Loop through files
         for filename in os.listdir(current_directory):
             # Only modify files with specified extensions
             ext = os.path.splitext(filename)[1]
@@ -43,25 +49,15 @@ def main():
 
             # Run translate function on script
             file_path = os.path.join(current_directory, filename)
-            new_file_path = translate_script(file_path, config)
-            print(f"Processed file: {file_path} -> {new_file_path}")
-            if condense_script:
-                condense_script(new_file_path)
-                print(f"CONDENSED: {new_file_path}")
+            translate_helper(file_path, config, is_condense_script)
     else:
-        if config.has_section('Development') and config.has_option('Development', 'condense_script'):
-            condense_script = config.getboolean('Development', 'condense_script')
-        else: 
-            condense_script = False
-        if condense_script:
-            print('===WARNING===\nCondense script feature is currently in development and will be buggy')
         # FILES DRAGGED ONTO SCRIPT
+        is_condense_script = get_is_condense_script(config)
+        if is_condense_script:
+            print('===WARNING===\nCondense script feature is currently in development and will be buggy')
+        # Loop through files
         for file_path in sys.argv[1:]:
-            new_file_path = translate_script(file_path, config)
-            print(f"Processed file: {file_path} -> {new_file_path}")
-            if condense_script:
-                condense_script(new_file_path)
-                print(f"Condensed file: {new_file_path}")
+            translate_helper(file_path, config, is_condense_script)
 
     input("\nPress Enter to exit...")
 
@@ -423,6 +419,15 @@ def create_ini(ini_filename):
     
     print(f"{ini_filename} created.")
 
+# Gets the condense_script setting in autotranslate_settings.ini
+def get_is_condense_script(config):
+    if config.has_section('Development') and config.has_option('Development', 'condense_script'):
+        is_condense_script = config.getboolean('Development', 'condense_script')
+    else: 
+        is_condense_script = False
+    return is_condense_script
+
+# Download ParamLabels.csv from ultimate-research if it doesn't already exist
 def create_paramlabels(param_labels_path):
     print(f"{param_labels_path} not found. Downloading ParamLabels.csv...")
     paramlabels_url = "https://raw.githubusercontent.com/ultimate-research/param-labels/refs/heads/master/ParamLabels.csv"
