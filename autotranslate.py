@@ -5,6 +5,10 @@ import csv
 import configparser
 import urllib.request
 
+# Global variable to store the ParamLabels dictionary
+param_labels_dict = None
+
+# 
 def main():
     current_directory = os.getcwd()
 
@@ -476,7 +480,16 @@ def replace_hashes(content):
     content = re.sub(hash_format, convert_hash, content)
     return content
 
-# Convert hash with ParamLabels.csv
+# Load ParamLabels into a dictionary for easier searching
+def load_param_labels(param_labels_path):
+    global param_labels_dict
+    param_labels_dict = {}
+    
+    with open(param_labels_path, newline='') as param_labels_file:
+        reader = csv.reader(param_labels_file, delimiter=',', quotechar='|')
+        for row in reader:
+            param_labels_dict[int(row[0], 16)] = row[1]
+
 def convert_hash(match):
     hash_value = match.group(0)
 
@@ -484,17 +497,19 @@ def convert_hash(match):
     if len(hash_value) < 9:
         return hash_value
 
-    # Get ParamLabels path
-    config = configparser.ConfigParser()
-    config.read("autotranslate_settings.ini")
-    param_labels_path = config.get('FileHandling', 'path_to_param_labels')
-    # Find hash in ParamLabels
-    with open(param_labels_path, newline='') as param_labels_file:
-        reader = csv.reader(param_labels_file, delimiter=',', quotechar='|')
-        for row in reader:
-            if int(row[0], 16) == int(hash_value, 16):
-                return "Hash40::new(\"" + row[1] + "\")"
-        return hash_value # do nothing if the hash is not found in ParamLabels.csv
+    # Load ParamLabels if not already loaded
+    if param_labels_dict is None:
+        config = configparser.ConfigParser()
+        config.read("autotranslate_settings.ini")
+        param_labels_path = config.get('FileHandling', 'path_to_param_labels')
+        load_param_labels(param_labels_path)
+
+    # Find hash in dictionary
+    hash_int = int(hash_value, 16)
+    if hash_int in param_labels_dict:
+        return f'Hash40::new("{param_labels_dict[hash_int]}")'
+    else:
+        return hash_value  # Do nothing if the hash is not found in ParamLabels.csv
 
 # Formats function name. Takes file content and script type as args
 def format_function_name(content, script_type):
