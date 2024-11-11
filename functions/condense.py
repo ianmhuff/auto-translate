@@ -6,7 +6,7 @@ def condense_script(file_path):
     with open(file_path, 'r', encoding='utf-8') as file:
         content = file.readlines()
 
-    # Patterns
+    # Regex patterns
     assignment_pattern = r'\s*(\w+)\s*=\s*([^;]+)\s*;' # Captures variable assignments
     hex_pattern = r'(?<!\[)(0x[0-9a-fA-F]{2})(?![0-9a-fA-F])(?!=\])' # Captures 2-digit hex vals
     in_stack_pattern = r'\bin_stack_\w+\b' # Captures in_stack vars
@@ -99,7 +99,7 @@ def condense_script(file_path):
                     "delete": True
                 })
 
-        # Find variable assignments
+        # Find variable assignments (var1 = var2)
         match = re.match(assignment_pattern, line)
         if match:
             variable_name = match.group(1).strip()
@@ -134,7 +134,23 @@ def condense_script(file_path):
             print(new_var_info)
             variables.append(new_var_info)
 
-    # Remove == true, != false, and all combinations
+    # Delete lines with delete param true
+    lines_to_delete = {var['line'] for var in variables if var['delete']}
+    content = [line for i, line in enumerate(content, start=1) if i not in lines_to_delete]
+
+    # Remove return value lines with no actual ret val 
+    content = [line for line in content if line.strip() != "return return_value.into();"]
+
+    simplify_bools(content)
+    remove_arrow_l2c(content)    
+    remove_last_semicolon(content)
+
+    # Write the modified content back to the file
+    with open(file_path, 'w', encoding='utf-8') as file:
+        file.writelines(content)
+
+# Remove == true, != false, and all combinations
+def simplify_bools(content):
     for line_number, line in enumerate(content):
         if " == false" in line or " != true" in line:
             if "if !" in line:
@@ -144,28 +160,19 @@ def condense_script(file_path):
         line = re.sub(r'\s*(==|!=)\s*(true|false)', '', line)
         content[line_number] = line
 
-    # Delete lines with delete param true
-    lines_to_delete = {var['line'] for var in variables if var['delete']}
-    content = [line for i, line in enumerate(content, start=1) if i not in lines_to_delete]
-
-    # Remove return value lines with no actual ret val 
-    content = [line for line in content if line.strip() != "return return_value.into();"]
-
-    # Remove " -> L2CValue" from FUN functs with no return in them
+# Removes " -> L2CValue" from FUN functs with no return in them
+def remove_arrow_l2c(content):
     if content and "FUN_71" in content[0]:
         # Check for "return" in the entire content
         if not any("return" in line for line in content):
             # Remove " -> L2CValue" from the first line
             content[0] = content[0].replace(" -> L2CValue", "")
-    
-    # If last line is a sub_shift_status_main or fastshift, remove semicolon for implied return
+
+# If last line is a sub_shift_status_main or fastshift, remove semicolon for implied return
+def remove_last_semicolon(content):
     for i in range(len(content) - 1, -1, -1):
         line = content[i]
         if line and '}' not in line:
             if "sub_shift_status_main" in line or "fastshift" in line:
                 content[i] = line.replace(';', '')
             break
-
-    # Write the modified content back to the file
-    with open(file_path, 'w', encoding='utf-8') as file:
-        file.writelines(content)
