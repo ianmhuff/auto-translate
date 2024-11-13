@@ -3,7 +3,7 @@ This python script makes the process of translating SSBU status scripts a little
 
 ## Usage
 #### Every file in the folder
-1. Place `autotranslate.py` in the same directory as the files containing the scripts to be translated (one script per file)
+1. Place `autotranslate.py` and the `functions` folder in the same directory as the files containing the scripts to be translated (one script per file)
 2. Click on `autotranslate.py` or run it in the console with `python autotranslate.py` to automatically translate any files found in the current folder
 ---
 #### Only select files

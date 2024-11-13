@@ -37,13 +37,14 @@ def main():
     if len(sys.argv) < 2:
         # SCRIPT CLICKED / RAN IN CONSOLE
         output_file_type = helper.getsafe(config, 'FileHandling', 'output_file_type')
-        input(f"===WARNING===\nThis script will read all {valid_extensions} files in the current directory and output as [{output_file_type}].\nIf you wish to proceed, press Enter. Otherwise Ctrl+C to exit\n> ")
+        search_subfolders = helper.getsafe(config, 'FileHandling', 'search_subfolders')
+        subfolder_warning = " AND all subdirectories" if search_subfolders else ""
+        input(f"===WARNING===\nThis script will read all {valid_extensions} files in the current directory{subfolder_warning} and output as [{output_file_type}].\nIf you wish to proceed, press Enter. Otherwise Ctrl+C to exit\n> ")
         is_condense_script = helper.getsafe(config, 'Development', 'condense_script', True)
         if is_condense_script:
             print('===WARNING===\nCondense script feature is currently in development and will be buggy')
         
         # Recursively find files
-        search_subfolders = helper.getsafe(config, 'FileHandling', 'search_subfolders', False)
         def get_files(directory):
             for root, _, files in os.walk(directory) if search_subfolders else [(directory, [], os.listdir(directory))]:
                 for filename in files:

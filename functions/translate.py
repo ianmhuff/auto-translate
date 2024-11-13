@@ -157,7 +157,8 @@ def translate_script(file_path, config):
         content = remove_var_declarations(content)
     
     # Generate new file name
-    file_name, file_extension = os.path.splitext(file_path)
+    file_dir, original_file_name = os.path.split(file_path)
+    file_name, file_extension = os.path.splitext(original_file_name)
 
     # File name
     output_file_name = helper.getsafe(config, 'FileHandling', 'output_file_name')
@@ -166,7 +167,7 @@ def translate_script(file_path, config):
     # File type
     output_file_type = helper.getsafe(config, 'FileHandling', 'output_file_type')
     if file_extension.lower() != output_file_type:
-        new_file_path = file_name + output_file_type
+        new_file_path = os.path.join(file_dir, file_name + output_file_type)
     else:
         new_file_path = file_path
     
