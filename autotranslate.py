@@ -50,7 +50,7 @@ def main():
                 for filename in files:
                     ext = os.path.splitext(filename)[1]
                     if ext in valid_extensions:
-                        yield os.path.join(root, filename) # Known issue where every file is wrote back to the directory autotranslate.py is in instead of staying where they originated
+                        yield os.path.join(root, filename)
 
         # Loop through files
         for file_path in get_files(current_directory):

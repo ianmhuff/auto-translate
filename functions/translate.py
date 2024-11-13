@@ -179,12 +179,12 @@ def translate_script(file_path, config):
 
 # Rets either "fighter", "weapon", "fun", or "unknown"
 def deduce_script_type(content):
-    if "L2CWeapon" in content: # Weapon should be first; weapons sometimes have "L2CFighter" in their scripts, but fighters shouldn't have "L2CWeapon" afaik
+    if "void FUN" in content: # FUN functs must be first, as FUN_ functs can contain "L2CFighterBase"
+        return "fun"
+    elif "L2CWeapon" in content: # Weapon should be before fighter; weapons sometimes have "L2CFighter" in their scripts, but fighters shouldn't have "L2CWeapon" afaik
         return "weapon"
     elif "L2CFighter" in content:
         return "fighter"
-    elif "void FUN" in content:
-        return "fun"
     return "unknown"
 
 # Formats function name. Takes file content and script type as args
