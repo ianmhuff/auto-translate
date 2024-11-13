@@ -3,7 +3,7 @@ import sys
 import configparser
 import urllib.request
 
-from functions import translate, condense
+from functions import translate, condense, helper
 
 # Main functionality
 def main():
@@ -17,12 +17,12 @@ def main():
     config.read(ini_filename)
 
     # Create ParamLabels.csv if doesn't already exist
-    param_labels_path = config.get('FileHandling', 'path_to_param_labels')
+    param_labels_path = helper.getsafe(config, 'FileHandling', 'path_to_param_labels')
     if not os.path.isfile(param_labels_path):
         create_paramlabels(param_labels_path)
 
     # Get valid file extensions
-    file_types = config.get('FileHandling', 'search_file_types')
+    file_types = helper.getsafe(config, 'FileHandling', 'search_file_types')
     valid_extensions = [file_type.strip() for file_type in file_types.split(',')]
 
     # Run translate_script and condense_script on a file
@@ -36,24 +36,29 @@ def main():
     # Determine how the script was executed
     if len(sys.argv) < 2:
         # SCRIPT CLICKED / RAN IN CONSOLE
-        output_file_type = config.get('FileHandling', 'output_file_type')
+        output_file_type = helper.getsafe(config, 'FileHandling', 'output_file_type')
         input(f"===WARNING===\nThis script will read all {valid_extensions} files in the current directory and output as [{output_file_type}].\nIf you wish to proceed, press Enter. Otherwise Ctrl+C to exit\n> ")
-        is_condense_script = get_is_condense_script(config)
+        is_condense_script = helper.getsafe(config, 'Development', 'condense_script', True)
         if is_condense_script:
             print('===WARNING===\nCondense script feature is currently in development and will be buggy')
-        # Loop through files
-        for filename in os.listdir(current_directory):
-            # Only modify files with specified extensions
-            ext = os.path.splitext(filename)[1]
-            if ext not in valid_extensions:
-                continue
+        
+        # Recursively find files
+        search_subfolders = helper.getsafe(config, 'FileHandling', 'search_subfolders', False)
+        def get_files(directory):
+            for root, _, files in os.walk(directory) if search_subfolders else [(directory, [], os.listdir(directory))]:
+                for filename in files:
+                    ext = os.path.splitext(filename)[1]
+                    if ext in valid_extensions:
+                        yield os.path.join(root, filename) # Known issue where every file is wrote back to the directory autotranslate.py is in instead of staying where they originated
 
+        # Loop through files
+        for file_path in get_files(current_directory):
             # Run translate function on script
-            file_path = os.path.join(current_directory, filename)
             translate_helper(file_path, config, is_condense_script)
+
     else:
         # FILES DRAGGED ONTO SCRIPT
-        is_condense_script = get_is_condense_script(config)
+        is_condense_script = helper.getsafe(config, 'Development', 'condense_script', True)
         if is_condense_script:
             print('===WARNING===\nCondense script feature is currently in development and will be buggy')
         # Loop through files
@@ -67,12 +72,13 @@ def create_ini(ini_filename):
     print(f"{ini_filename} not found, creating...")
     config = configparser.ConfigParser()
 
-    config['General'] = {
+    config['Translation'] = {
         'keep_tilde_lines': 'false',
         'keep_var_declarations': 'false'
     }
     config['FileHandling'] = {
         'search_file_types': '.txt, .c',
+        'search_subfolders': 'false',
         'output_file_type': '.rs',
         'output_file_name': 'rename',
         'path_to_param_labels': './ParamLabels.csv'
@@ -82,14 +88,6 @@ def create_ini(ini_filename):
         config.write(configfile)
     
     print(f"{ini_filename} created.")
-
-# Gets the condense_script setting in autotranslate_settings.ini
-def get_is_condense_script(config):
-    if config.has_section('Development') and config.has_option('Development', 'condense_script'):
-        is_condense_script = config.getboolean('Development', 'condense_script')
-    else: 
-        is_condense_script = False
-    return is_condense_script
 
 # Download ParamLabels.csv from ultimate-research if it doesn't already exist
 def create_paramlabels(param_labels_path):

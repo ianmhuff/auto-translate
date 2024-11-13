@@ -49,12 +49,13 @@ This python script makes the process of translating SSBU status scripts a little
 
 ## autotranslate_settings.ini
 ```ini
-[General]
+[Translation]
 keep_tilde_lines =# Whether to reformat lines with tildes or remove them entirely
 keep_var_declarations =# Whether to keep the section of variable declarations at the top of the file or not
 
 [FileHandling]
 search_file_types =# List of file types to look for in the current directory 
+search_subfolders =# Whether to search for files in subfolders or not
 output_file_type =# File type to output in
 output_file_name =# Whether to [keep] the original file name when outputting or [rename] to the function name
 path_to_param_labels =# Filepath to ParamLabels.csv

@@ -145,7 +145,7 @@ def translate_script(file_path, config):
     content = replace_hashes(content)
 
     # Handle tilde lines
-    if config.getboolean('General', 'keep_tilde_lines'):
+    if helper.getsafe(config, 'Translation', 'keep_tilde_lines'):
         # reformat lib::L2CValue::~L2CValue(var1) to //free(var1)
         tilde_regex = [(r"lib::L2CValue::~L2CValue\((.+?)\)", r"// free(\1)")]
         content = helper.replace_regex(content, tilde_regex)
@@ -153,22 +153,23 @@ def translate_script(file_path, config):
         content = remove_tilde_lines(content)
     
     # Handle var declarations
-    if not config.getboolean('General', 'keep_var_declarations'):
+    if not helper.getsafe(config, 'Translation', 'keep_var_declarations'):
         content = remove_var_declarations(content)
     
     # Generate new file name
     file_name, file_extension = os.path.splitext(file_path)
+
     # File name
-    output_file_name = config.get('FileHandling', 'output_file_name')
+    output_file_name = helper.getsafe(config, 'FileHandling', 'output_file_name')
     if output_file_name == "rename" and new_function_name is not None:
         file_name = new_function_name
     # File type
-    output_file_type = config.get('FileHandling', 'output_file_type')
+    output_file_type = helper.getsafe(config, 'FileHandling', 'output_file_type')
     if file_extension.lower() != output_file_type:
         new_file_path = file_name + output_file_type
     else:
         new_file_path = file_path
-
+    
     # Write back to file
     with open(new_file_path, 'w', encoding='utf-8') as file:
         file.write(content)
@@ -243,7 +244,7 @@ def convert_hash(match):
     if param_labels_dict is None:
         config = configparser.ConfigParser()
         config.read("autotranslate_settings.ini")
-        param_labels_path = config.get('FileHandling', 'path_to_param_labels')
+        param_labels_path = helper.getsafe(config, 'FileHandling', 'path_to_param_labels')
         load_param_labels(param_labels_path)
 
     # Find hash in dictionary
