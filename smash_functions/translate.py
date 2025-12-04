@@ -3,7 +3,7 @@ import re
 import csv
 import configparser
 
-from functions import helper
+from smash_functions import helper
 
 # Global variable to store the ParamLabels dictionary
 param_labels_dict = None

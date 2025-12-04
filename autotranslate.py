@@ -3,7 +3,7 @@ import sys
 import configparser
 import urllib.request
 
-from functions import translate, condense, helper
+from smash_functions import translate, condense, helper
 
 # Main functionality
 def main():
